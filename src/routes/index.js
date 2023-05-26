@@ -1,7 +1,7 @@
 const router = require('express').Router();
+const cookieParser = require('cookie-parser');
 
-router.get('/', (req, res) => {
-    res.send('Hello World!');
-});
+router.use(cookieParser());
+router.use('/user', require('./user'));
 
 module.exports = router;

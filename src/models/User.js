@@ -26,6 +26,13 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+}, {
+    toJSON: {
+        transform(doc, ret) {
+            // eslint-disable-next-line no-param-reassign
+            delete ret.password;
+        },
+    },
 });
 
 userSchema.pre('save', function preSave(next) {
