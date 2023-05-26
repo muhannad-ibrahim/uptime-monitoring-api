@@ -50,7 +50,7 @@ const login = async (req, res, next) => {
     try {
         res.cookie('jwt', token, { httpOnly: true, maxAge: 1000 * 60 * 60 * 4 });
     } catch (error) {
-        return next({ message: 'error' });
+        return next({ message: error.message });
     }
 
     return res.json({ message: 'success', token });
