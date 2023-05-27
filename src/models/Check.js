@@ -52,6 +52,44 @@ const checkSchema = new mongoose.Schema({
         type: mongoose.Types.ObjectId,
         ref: 'User',
     },
+    status: {
+        type: String,
+        enum: ['UP', 'DOWN'],
+        default: 'UP',
+    },
+    availability: {
+        type: Number,
+        default: 100,
+    },
+    outages: {
+        type: Number,
+        default: 0,
+    },
+    downtime: {
+        type: Number,
+        default: 0,
+    },
+    uptime: {
+        type: Number,
+        default: 0,
+    },
+    responseTime: {
+        type: Number,
+        default: 0,
+    },
+    history: [
+        {
+            timestamp: {
+                type: Date,
+                default: Date.now,
+            },
+            status: {
+                type: String,
+                enum: ['UP', 'DOWN'],
+            },
+            responseTime: Number,
+        },
+    ],
 }, { timestamps: true });
 
 const Check = mongoose.model('Check', checkSchema);
