@@ -1,6 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const router = require('./src/routes');
+const swaggerOptions = require('./swaggerOptions');
 
 const dbConnection = require('./src/db');
 
@@ -11,8 +14,12 @@ const { PORT } = process.env;
 
 const app = express();
 
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
 app.use(express.json());
 app.use(router);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 async function main() {
     try {

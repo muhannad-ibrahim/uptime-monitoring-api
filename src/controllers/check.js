@@ -10,6 +10,9 @@ const createCheck = async (req, res, next) => {
     try {
         // get the user's email from the token in the cookies
         const token = req.cookies.jwt;
+        if (!token) {
+            return next({ message: 'No token provided' });
+        }
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
@@ -45,6 +48,9 @@ const createCheck = async (req, res, next) => {
 const getChecks = async (req, res, next) => {
     try {
         const token = req.cookies.jwt;
+        if (!token) {
+            return next({ message: 'No token provided' });
+        }
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
@@ -73,6 +79,9 @@ const updateCheckById = async (req, res, next) => {
         const start = Date.now();
         // get the user's email from the token in the cookies
         const token = req.cookies.jwt;
+        if (!token) {
+            return next({ message: 'No token provided' });
+        }
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
@@ -135,6 +144,9 @@ const deleteCheckById = async (req, res, next) => {
     try {
     // get the user's email from the token in the cookies
         const token = req.cookies.jwt;
+        if (!token) {
+            return next({ message: 'No token provided' });
+        }
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
@@ -164,6 +176,9 @@ const deleteCheckById = async (req, res, next) => {
 const getCheckReportsById = async (req, res, next) => {
     try {
         const token = req.cookies.jwt;
+        if (!token) {
+            return next({ message: 'No token provided' });
+        }
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
