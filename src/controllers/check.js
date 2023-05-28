@@ -6,27 +6,34 @@ const User = require('../models/User');
 const asyncWrapper = require('../middleware');
 const { sendEmail, timeCalculation } = require('../utils');
 
+const getTokenFromRequest = (req) => {
+    const token = req.cookies.jwt;
+    if (!token) {
+        throw new Error('No token provided');
+    }
+    return token;
+};
+
+const getUserByEmail = async (email) => {
+    const promise = User.findOne({ email });
+    const [err, user] = await asyncWrapper(promise);
+    if (err) {
+        throw err;
+    }
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+};
+
 const createCheck = async (req, res, next) => {
     try {
-        // get the user's email from the token in the cookies
-        const token = req.cookies.jwt;
-        if (!token) {
-            return next({ message: 'No token provided' });
-        }
+        const token = getTokenFromRequest(req);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const promise = User.findOne({ email: userEmail });
-        const [err, user] = await asyncWrapper(promise);
+        const user = await getUserByEmail(userEmail);
 
-        if (err) {
-            return next(err);
-        }
-        if (!user) {
-            return next({ message: 'User not found' });
-        }
-
-        // create a new check with the user's ID
         const check = new Check({
             ...req.body,
             user_id: user.id,
@@ -47,24 +54,12 @@ const createCheck = async (req, res, next) => {
 
 const getChecks = async (req, res, next) => {
     try {
-        const token = req.cookies.jwt;
-        if (!token) {
-            return next({ message: 'No token provided' });
-        }
+        const token = getTokenFromRequest(req);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const promise = User.findOne({ email: userEmail });
-        const [err, user] = await asyncWrapper(promise);
+        const user = await getUserByEmail(userEmail);
 
-        if (err) {
-            return next(err);
-        }
-        if (!user) {
-            return next({ message: 'User not found' });
-        }
-
-        // find all checks associated with the user's ID
         const checks = await Check.find({ user_id: user.id });
 
         return res.status(200).json({ success: true, data: checks });
@@ -73,27 +68,14 @@ const getChecks = async (req, res, next) => {
     }
 };
 
-// update a single check for a user by ID
 const updateCheckById = async (req, res, next) => {
     try {
         const start = Date.now();
-        // get the user's email from the token in the cookies
-        const token = req.cookies.jwt;
-        if (!token) {
-            return next({ message: 'No token provided' });
-        }
+        const token = getTokenFromRequest(req);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const promise = User.findOne({ email: userEmail });
-        const [err, user] = await asyncWrapper(promise);
-
-        if (err) {
-            return next(err);
-        }
-        if (!user) {
-            return next({ message: 'User not found' });
-        }
+        const user = await getUserByEmail(userEmail);
 
         const check = await Check.findOne({ _id: req.params.id, user_id: user.id });
         if (!check) {
@@ -126,8 +108,6 @@ const updateCheckById = async (req, res, next) => {
 
         await check.save();
 
-        // send email notification if the status has changed
-        // and the user has opted in for notifications
         if (lastStatus !== newStatus) {
             console.log('Sending email notification');
             sendEmail.sendStatusChangeNotification(check, user.email);
@@ -139,29 +119,14 @@ const updateCheckById = async (req, res, next) => {
     }
 };
 
-// delete a single check for a user by ID
 const deleteCheckById = async (req, res, next) => {
     try {
-    // get the user's email from the token in the cookies
-        const token = req.cookies.jwt;
-        if (!token) {
-            return next({ message: 'No token provided' });
-        }
+        const token = getTokenFromRequest(req);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        // find the user by email
-        const promise = User.findOne({ email: userEmail });
-        const [err, user] = await asyncWrapper(promise);
+        const user = await getUserByEmail(userEmail);
 
-        if (err) {
-            return next(err);
-        }
-        if (!user) {
-            return next({ message: 'User not found' });
-        }
-
-        // find and delete th check associated with the user's ID and the requested ID
         const check = await Check.findOneAndDelete({ _id: req.params.id, user_id: user.id });
         if (!check) {
             return next({ message: 'Check not found' });
@@ -173,24 +138,13 @@ const deleteCheckById = async (req, res, next) => {
     }
 };
 
-const getCheckReportsById = async (req, res, next) => {
+const getCheckReportsByURL = async (req, res, next) => {
     try {
-        const token = req.cookies.jwt;
-        if (!token) {
-            return next({ message: 'No token provided' });
-        }
+        const token = getTokenFromRequest(req);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const promise = User.findOne({ email: userEmail });
-        const [err, user] = await asyncWrapper(promise);
-
-        if (err) {
-            return next(err);
-        }
-        if (!user) {
-            return next({ message: 'User not found' });
-        }
+        const user = await getUserByEmail(userEmail);
 
         const check = await Check.findOne({ url: req.body.url, user_id: user.id });
         if (!check) {
@@ -223,6 +177,6 @@ module.exports = {
     createCheck,
     getChecks,
     updateCheckById,
-    getCheckReportsById,
+    getCheckReportsByURL,
     deleteCheckById,
 };
