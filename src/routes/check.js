@@ -232,4 +232,48 @@ router.put('/:id', checkController.updateCheckById);
 
 router.delete('/:id', checkController.deleteCheckById);
 
+/**
+ * @swagger
+ * /check/tags/{tag}:
+ *   get:
+ *     summary: Get reports for checks with a specific tag
+ *     parameters:
+ *       - in: path
+ *         name: tag
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The tag used to filter the checks and retrieve the reports
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       checkId:
+ *                         type: string
+ *                       url:
+ *                         type: string
+ *                       history:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             status:
+ *                               type: string
+ *                             responseTime:
+ *                               type: number
+ */
+
+router.get('/tags/:tag', checkController.getReportsByTag);
+
 module.exports = router;

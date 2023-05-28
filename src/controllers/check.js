@@ -173,10 +173,36 @@ const getCheckReportsByURL = async (req, res, next) => {
     }
 };
 
+const getReportsByTag = async (req, res, next) => {
+    try {
+        const { tag } = req.params;
+
+        const token = getTokenFromRequest(req, next);
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        const userEmail = decodedToken.email;
+
+        const user = await getUserByEmail(userEmail, next);
+
+        const checks = await Check.find({ user_id: user.id, tags: tag });
+
+        const reports = checks.map((check) => ({
+            // eslint-disable-next-line no-underscore-dangle
+            checkId: check._id,
+            url: check.url,
+            history: check.history,
+        }));
+
+        return res.status(200).json({ success: true, data: reports });
+    } catch (err) {
+        return next({ message: err.message });
+    }
+};
+
 module.exports = {
     createCheck,
     getChecks,
     updateCheckById,
     getCheckReportsByURL,
     deleteCheckById,
+    getReportsByTag,
 };
