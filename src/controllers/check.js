@@ -6,33 +6,33 @@ const User = require('../models/User');
 const asyncWrapper = require('../middleware');
 const { sendEmail, timeCalculation } = require('../utils');
 
-const getTokenFromRequest = (req) => {
+const getTokenFromRequest = (req, next) => {
     const token = req.cookies.jwt;
     if (!token) {
-        throw new Error('No token provided');
+        return next({ message: 'No token provided' });
     }
     return token;
 };
 
-const getUserByEmail = async (email) => {
+const getUserByEmail = async (email, next) => {
     const promise = User.findOne({ email });
     const [err, user] = await asyncWrapper(promise);
     if (err) {
-        throw err;
+        return next(err);
     }
     if (!user) {
-        throw new Error('User not found');
+        return next({ message: 'User not found' });
     }
     return user;
 };
 
 const createCheck = async (req, res, next) => {
     try {
-        const token = getTokenFromRequest(req);
+        const token = getTokenFromRequest(req, next);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const user = await getUserByEmail(userEmail);
+        const user = await getUserByEmail(userEmail, next);
 
         const check = new Check({
             ...req.body,
@@ -54,11 +54,11 @@ const createCheck = async (req, res, next) => {
 
 const getChecks = async (req, res, next) => {
     try {
-        const token = getTokenFromRequest(req);
+        const token = getTokenFromRequest(req, next);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const user = await getUserByEmail(userEmail);
+        const user = await getUserByEmail(userEmail, next);
 
         const checks = await Check.find({ user_id: user.id });
 
@@ -71,11 +71,11 @@ const getChecks = async (req, res, next) => {
 const updateCheckById = async (req, res, next) => {
     try {
         const start = Date.now();
-        const token = getTokenFromRequest(req);
+        const token = getTokenFromRequest(req, next);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const user = await getUserByEmail(userEmail);
+        const user = await getUserByEmail(userEmail, next);
 
         const check = await Check.findOne({ _id: req.params.id, user_id: user.id });
         if (!check) {
@@ -121,11 +121,11 @@ const updateCheckById = async (req, res, next) => {
 
 const deleteCheckById = async (req, res, next) => {
     try {
-        const token = getTokenFromRequest(req);
+        const token = getTokenFromRequest(req, next);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const user = await getUserByEmail(userEmail);
+        const user = await getUserByEmail(userEmail, next);
 
         const check = await Check.findOneAndDelete({ _id: req.params.id, user_id: user.id });
         if (!check) {
@@ -140,11 +140,11 @@ const deleteCheckById = async (req, res, next) => {
 
 const getCheckReportsByURL = async (req, res, next) => {
     try {
-        const token = getTokenFromRequest(req);
+        const token = getTokenFromRequest(req, next);
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
         const userEmail = decodedToken.email;
 
-        const user = await getUserByEmail(userEmail);
+        const user = await getUserByEmail(userEmail, next);
 
         const check = await Check.findOne({ url: req.body.url, user_id: user.id });
         if (!check) {
